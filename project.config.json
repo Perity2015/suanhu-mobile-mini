@@ -1,0 +1,15 @@
+{
+	"description": "SuanHu Mini",
+	"setting": {
+		"urlCheck": false,
+		"es6": false,
+		"postcss": false,
+		"minified": false,
+		"newFeature": true
+	},
+	"compileType": "miniprogram",
+	"appid": "wx64bb75cbe4b84402",
+	"projectname": "suanhu-mobile-mini",
+	"miniprogramRoot": "./dist",
+	"condition": {}
+}

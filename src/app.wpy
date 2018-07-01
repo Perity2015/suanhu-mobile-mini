@@ -1,0 +1,85 @@
+<style lang="less">
+  .container {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    display: flex;
+    background: #F2F2F2;
+    overflow: hidden;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    box-sizing: border-box;
+  }
+</style>
+
+<script>
+  import wepy from 'wepy'
+  import 'wepy-async-function'
+  import { post } from './utils/http'
+
+  export default class extends wepy.app {
+    config = {
+      pages: [
+        'pages/index',
+        'pages/pay'
+      ],
+      window: {
+        backgroundTextStyle: 'light',
+        navigationBarBackgroundColor: '#3196c8',
+        navigationBarTitleText: '算乎',
+        navigationBarTextStyle: 'white'
+      }
+    }
+
+    globalData = {
+      userInfo: null,
+      openId: null,
+      needRefresh: false
+    }
+
+    constructor() {
+      super()
+      this.use('requestfix')
+    }
+
+    onLaunch() {
+      const that = this
+      wx.login({
+        success: function(res) {
+          const { code } = res
+          post('/mobile/home/jsCodeToSession', { code, appId: 'wx64bb75cbe4b84402' }, { loading: true })
+            .then(res => {
+              const openId = res.data
+              that.globalData.openId = openId
+            })
+        }
+      })
+    }
+
+    getOpenId() {
+      if (this.globalData.openId) {
+        return this.globalData.openId
+      }
+    }
+
+    setNeedRefresh(needRefresh) {
+      this.globalData.needRefresh = needRefresh
+    }
+
+    getUserInfo(cb) {
+      const that = this
+      if (this.globalData.userInfo) {
+        return this.globalData.userInfo
+      }
+      wepy.getUserInfo({
+        success(res) {
+          that.globalData.userInfo = res.userInfo
+          cb && cb(res.userInfo)
+        }
+      })
+    }
+  }
+</script>

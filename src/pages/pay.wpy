@@ -1,0 +1,254 @@
+<style lang="less">
+  .footer {
+    position: relative;
+    line-height: unit(88, rpx);
+    height: unit(88, rpx);
+    font-size: unit(26, rpx);
+    width: 100%;
+    padding-left: unit(30, rpx);
+    display: flex;
+    background: white;
+  }
+
+  .footerButton {
+    width: unit(240, rpx);
+    color: white;
+    text-align: center;
+    line-height: unit(88, rpx);
+    height: unit(88, rpx);
+    font-size: unit(28, rpx);
+    border-radius: 0;
+  }
+
+  .footerPrice {
+    flex: 1;
+    text-align: left;
+    color: red;
+  }
+
+  .scrollBox {
+    flex: 1;
+    overflow-y: scroll;
+  }
+
+  .consultInfo {
+    font-size: unit(28, rpx);
+    background: white;
+  }
+
+  .infoItem {
+    display: flex;
+    padding: unit(16, rpx) unit(30, rpx);
+    align-items: center;
+    .left {
+      color: #333333;
+    }
+    .right {
+      color: #666666;
+    }
+  }
+
+  .pictureItem {
+    display: flex;
+    padding: unit(16, rpx) unit(30, rpx);
+    align-items: center;
+    flex-wrap: wrap;
+    .imgItem {
+      width: unit(160, rpx);
+      height: unit(160, rpx);
+      border-radius: unit(8, rpx);
+      margin-right: unit(16, rpx);
+    }
+    .imgItem:nth-child(4n) {
+      margin-right: 0;
+    }
+  }
+</style>
+<template>
+  <view class="container">
+    <scroll-view scroll-y class="scrollBox">
+      <view class="consultInfo" wx:if="{{consultInfo}}">
+        <view class="infoItem" wx:if="{{consultInfo.name}}">
+          <view class="left">姓&#12288;&#12288;名：</view>
+          <view class="right">{{consultInfo.name}}</view>
+        </view>
+        <view class="infoItem" wx:if="{{consultInfo.sex}}" >
+          <view class="left">性&#12288;&#12288;别：</view>
+          <view class="right">{{sexStr}}</view>
+        </view>
+        <view class="infoItem" wx:if="{{consultInfo.birthday}}">
+          <view class="left">出生日期：</view>
+          <view class="right">{{birthdayStr}}</view>
+        </view>
+        <view class="infoItem" wx:if="{{consultInfo.comments}}">
+          <view class="left">时辰备注：</view>
+          <view class="right">{{consultInfo.comments}}</view>
+        </view>
+        <view class="infoItem">
+          <view class="left">咨询问题：</view>
+          <view class="right">{{consultInfo.content}}</view>
+        </view>
+        <view class="pictureItem">
+          <image class="imgItem"
+                 wx:for="{{consultInfo.imagePathList}}"
+                 wx:key="{{index}}"
+                 src={{item}}
+                 data-url="{{item}}"
+                 @tap="preview"
+                 mode="aspectFill">
+          </image>
+        </view>
+      </view>
+      <view class="consultInfo" wx:if="{{bookInfo}}">
+        <view class="infoItem">
+          <view class="left">服务名称：</view>
+          <view class="right">{{bookInfo.serviceName}}</view>
+        </view>
+        <view class="infoItem" wx:if="{{bookInfo.nickName}}">
+          <view class="left">姓&#12288;&#12288;名：</view>
+          <view class="right">{{bookInfo.nickName}}</view>
+        </view>
+        <view class="infoItem">
+          <view class="left">手&#12288;&#12288;机：</view>
+          <view class="right">{{bookInfo.mobile}}</view>
+        </view>
+        <view class="infoItem" wx:if="{{bookInfo.sex}}">
+          <view class="left">性&#12288;&#12288;别：</view>
+          <view class="right">{{sexStr1}}</view>
+        </view>
+        <view class="infoItem" wx:if="{{bookInfo.birthday}}">
+          <view class="left">出生日期：</view>
+          <view class="right">{{birthdayStr1}}</view>
+        </view>
+        <view class="infoItem" wx:if="{{bookInfo.comment}}">
+          <view class="left">时辰备注：</view>
+          <view class="right">{{bookInfo.comment}}</view>
+        </view>
+        <view wx:if="{{bookInfo.dataList}}">
+          <view class="infoItem"
+                wx:for="{{bookInfo.dataList}}"
+                wx:key="{{index}}">
+            <view class="left">{{item.label}}：</view>
+            <view class="right">{{item.value}}</view>
+          </view>
+        </view>
+        <view class="infoItem" wx:if="{{bookInfo.desc}}">
+          <view class="left">咨询问题：</view>
+          <view class="right">{{bookInfo.desc}}</view>
+        </view>
+        <view class="pictureItem">
+          <image class="imgItem"
+                 wx:for="{{bookInfo.imagePathList}}"
+                 wx:key="{{index}}"
+                 src={{item}}
+                 data-url="{{item}}"
+                 @tap="preview1"
+                 mode="aspectFill">
+          </image>
+        </view>
+      </view>
+    </scroll-view>
+    <view class="footer">
+      <view>合计：</view>
+      <view class="footerPrice">￥{{consultInfo.payPrice||bookInfo.consultPrice}}</view>
+      <button class="footerButton" type="primary" @tap="bindPay">微信支付</button>
+    </view>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import testMixin from '../mixins/test'
+  import { post } from '../utils/http'
+  import { wxUtil } from '../utils/wxUtil'
+  import { payType, sexTypeMap } from '../utils/const';
+  import { DateUtils } from '../utils/DateUtils'
+
+  export default class Pay extends wepy.page {
+    config = {
+      navigationBarTitleText: '订单确认'
+    };
+
+    mixins = [testMixin];
+
+    data = {
+      pathSearch: {},
+      consultInfo: null,
+      bookInfo: null
+    };
+
+    computed = {
+      birthdayStr: () => this.$data.consultInfo && `${DateUtils.getDateTimeString(this.$data.consultInfo.birthday)}  ${DateUtils.getLunarDate(this.$data.consultInfo.birthday)}`,
+      sexStr: () => this.$data.consultInfo && sexTypeMap[this.$data.consultInfo.sex],
+      birthdayStr1: () => this.$data.bookInfo && `${DateUtils.getDateTimeString(this.$data.bookInfo.birthday)}  ${DateUtils.getLunarDate(this.$data.bookInfo.birthday)}`,
+      sexStr1: () => this.$data.bookInfo && sexTypeMap[this.$data.bookInfo.sex]
+    };
+
+    methods = {
+      preview: (e) => {
+        const url = e.target.dataset.url;
+        wx.previewImage({
+          current: url, // 当前显示图片的http链接
+          urls: this.$data.consultInfo.imagePathList // 需要预览的图片http链接列表
+        })
+      },
+      preview1: (e) => {
+        const url = e.target.dataset.url;
+        wx.previewImage({
+          current: url, // 当前显示图片的http链接
+          urls: this.$data.bookInfo.imagePathList // 需要预览的图片http链接列表
+        })
+      },
+      bindPay: () => {
+        const { orderId } = this.pathSearch
+        const openid = this.$parent.getOpenId();
+        console.log(openid)
+        post('/mobile/pay/mini/getJSSDKParam', {
+          orderId,
+          openId: openid
+        }, { loading: true }).then((res) => {
+          const data = res.data
+          wxUtil.wxPay({
+            'timeStamp': data.timeStamp,
+            'nonceStr': data.nonceStr,
+            'package': data.package,
+            'signType': data.signType,
+            'paySign': data.paySign
+          }).then((res) => {
+            wx.navigateBack({
+              delta: 1
+            })
+          })
+        })
+      }
+    };
+
+    events = {
+      'index-emit': (...args) => {
+        let $event = args[args.length - 1]
+        console.log(`${this.$name} receive ${$event.name} from ${$event.source.$name}`)
+      }
+    };
+
+    onLoad(options) {
+      this.pathSearch = options
+      const { type, id } = options
+      this.$parent.setNeedRefresh(true);
+      if (type === payType.consult) {
+        post('/mobile/consult/loadConsultInfoOnSmallProgram', { id }, { loading: true })
+          .then(res => {
+            this.consultInfo = res.data;
+            this.setData({ consultInfo: res.data })
+            this.$apply()
+          })
+      } else {
+        post('/mobile/book/order/loadBookOrderByIdOnSmallProgram', { id }, { loading: true })
+          .then(res => {
+            this.bookInfo = res.data;
+            this.setData({ bookInfo: res.data })
+            this.$apply()
+          })
+      }
+    }
+  }
+</script>

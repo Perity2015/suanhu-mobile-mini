@@ -1,0 +1,108 @@
+<style lang="less">
+  .userinfo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .userinfo-avatar {
+    width: 80 rpx;
+    height: 80 rpx;
+    border-radius: 50%;
+  }
+
+  .userinfo-nickname {
+    color: #aaa;
+  }
+</style>
+<template>
+  <view class="container">
+    <web-view src="{{src}}"></web-view>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import testMixin from '../mixins/test'
+
+  export default class Index extends wepy.page {
+    config = {
+      navigationBarTitleText: '算乎'
+    };
+    components = {};
+
+    mixins = [testMixin];
+
+    data = {
+      src: 'https://weixin.suanhuw.com/mobile/index?appId=wx94b3ee55d223d13b',
+      userInfo: {
+        nickName: '加载中...'
+      }
+    };
+
+    computed = {
+      now() {
+        return +new Date()
+      }
+    };
+
+    methods = {
+      test: () => {
+        console.log(1)
+      }
+    };
+
+    events = {
+      'index-emit': (...args) => {
+        let $event = args[args.length - 1]
+        console.log(`${this.$name} receive ${$event.name} from ${$event.source.$name}`)
+      }
+    };
+
+    onShow(options) {
+      console.log(this.$parent.globalData);
+      // if (this.$parent.globalData.needRefresh) {
+      //   this.$parent.setNeedRefresh(false);
+      //   this.src = 'https://weixin.suanhuw.com/mobile/custom/orderList?appId=wx94b3ee55d223d13b&type=1&orderStatus=0';
+      //   this.$apply()
+      // }
+      console.log('App onShow');
+      console.log(options)
+    };
+
+    onHide(options) {
+      console.log('App onHide');
+      console.log(options)
+    };
+
+    onReady(options) {
+      console.log('App onReady');
+      console.log(options)
+    };
+
+    onError(options) {
+      console.log('App onError');
+      console.log(options)
+    };
+
+    onLoad(options) {
+      let self = this
+      console.log('App onLoad');
+      console.log(options)
+      this.$parent.getUserInfo(function(userInfo) {
+        if (userInfo) {
+          self.userInfo = userInfo
+        }
+        // self.normalTitle = '标题已被修改'
+        //
+        // self.setTimeoutTitle = '标题三秒后会被修改'
+        // setTimeout(() => {
+        //   self.setTimeoutTitle = '到三秒了'
+        //   self.$apply()
+        // }, 3000)
+
+        self.$apply()
+      })
+    }
+  }
+</script>

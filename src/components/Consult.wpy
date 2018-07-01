@@ -1,0 +1,104 @@
+<style lang="less">
+  .consultInfo {
+    font-size: unit(28, rpx);
+    background: white;
+  }
+
+  .infoItem {
+    display: flex;
+    padding: unit(16, rpx) unit(30, rpx);
+    align-items: center;
+    .left {
+      color: #333333;
+    }
+    .right {
+      color: #666666;
+    }
+  }
+
+  .pictureItem {
+    display: flex;
+    padding: unit(16, rpx) unit(30, rpx);
+    align-items: center;
+    flex-wrap: wrap;
+    .imgItem {
+      width: unit(160, rpx);
+      height: unit(160, rpx);
+      border-radius: unit(8, rpx);
+      margin-right: unit(16, rpx);
+    }
+    .imgItem:nth-child(4n) {
+      margin-right: 0;
+    }
+  }
+</style>
+<template>
+  <view class="consultInfo">
+    <view class="infoItem">
+      <view class="left">姓&#12288;&#12288;名：</view>
+      <view class="right">{{info.name}}</view>
+    </view>
+    <view class="infoItem">
+      <view class="left">性&#12288;&#12288;别：</view>
+      <view class="right">{{sexStr}}</view>
+    </view>
+    <view class="infoItem">
+      <view class="left">出生日期：</view>
+      <view class="right">{{birthdayStr}}</view>
+    </view>
+    <view class="infoItem">
+      <view class="left">时辰备注：</view>
+      <view class="right">{{info.comments}}</view>
+    </view>
+    <view class="infoItem">
+      <view class="left">咨询问题：</view>
+      <view class="right">{{info.content}}</view>
+    </view>
+    <view class="pictureItem" wx:for="{{info.imagePathList}}">
+      <image class="imgItem"
+             src={{item}}
+             data-url="{{item}}"
+             @tap="preview"
+             mode="aspectFill">
+      </image>
+    </view>
+  </view>
+</template>
+<script>
+  import wepy from 'wepy'
+  import { DateUtils } from '../utils/DateUtils'
+  import { sexTypeMap } from '../utils/const'
+
+  export default class Consult extends wepy.component {
+    props = {
+      info: {
+        type: [Object]
+      }
+    }
+
+    data = {}
+    events = {
+      'index-broadcast': (...args) => {
+        let $event = args[args.length - 1]
+        console.log(`${this.$name} receive ${$event.name} from ${$event.source.$name}`)
+      }
+    }
+
+    watch = {}
+
+    computed = {
+      birthdayStr: () => this.info && `${DateUtils.getDateTimeString(this.info.birthday)}  ${DateUtils.getLunarDate(this.info.birthday)}`,
+      sexStr: () => this.info && sexTypeMap[this.info.sex]
+    }
+
+    methods = {
+      preview: (e) => {
+        const url = e.target.dataset.url;
+        wx.previewImage({
+          current: url, // 当前显示图片的http链接
+          urls: this.info.imagePathList // 需要预览的图片http链接列表
+        })
+      }
+    }
+  }
+</script>
